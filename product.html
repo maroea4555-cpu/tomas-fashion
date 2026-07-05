@@ -1,0 +1,566 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Product Details</title>
+  </head>
+  <body>
+    <header class="headerContainer">
+      <div class="header">
+        <a href="index.html" class="logo" aria-label="Tomas Fashion home">
+          <img src="18f94dfd-194c-436a-b6b3-08dd85197390.jpg" alt="Tomas Fashion logo" />
+        </a>
+        <nav class="headerLinks" aria-label="Main navigation">
+          <a href="index.html">Home</a>
+          <a href="index.html#shop">Our Shop</a>
+          <a href="product.html">Product Details</a>
+          <a href="index.html#contact">Contact Us</a>
+          <button class="cartBtn" type="button" onclick="openCart()" aria-label="Open cart">
+            Cart <span id="cartCount">0</span>
+          </button>
+          <button class="btn" type="button" onclick="openModal()">Sign In</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <a href="index.html#shop" class="backBtn">Back to shop</a>
+
+      <section class="productPageContainer">
+        <div class="productPageImg">
+          <img id="productImg" src="white.jpg" alt="Product image" />
+        </div>
+        <div class="productPageInfo">
+          <p class="category" id="productCategory">T-shirt</p>
+          <h1 id="productName">Boxfit White</h1>
+          <p class="productDescription">
+            Premium cotton t-shirt with clean embroidery, a relaxed box fit, and everyday comfort.
+          </p>
+          <p class="offerBanner">🔥 Buy 2 for 1200 EGP | Buy 3 for 1650 EGP</p>
+
+          <p class="sizeLabel">Select Size</p>
+          <div class="sizes" aria-label="Available sizes">
+            <button class="sizeBtn" type="button" onclick="selectSize(this)">M</button>
+            <button class="sizeBtn" type="button" onclick="selectSize(this)">L</button>
+            <button class="sizeBtn" type="button" onclick="selectSize(this)">XL</button>
+          </div>
+
+          <button class="addToCartBtn" type="button" onclick="addToCart()">Add to Cart</button>
+          <p class="cartMessage" id="cartMessage" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+
+    <div class="overlay" id="overlay" onclick="closeOnOverlay(event)">
+      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="closeBtn" type="button" onclick="closeModal()" aria-label="Close">&times;</button>
+        <h2 id="modalTitle">Admin Login</h2>
+        <p class="modalSub">Login to add products and edit prices on this browser.</p>
+
+        <div class="field">
+          <label for="adminUser">Username</label>
+          <input id="adminUser" type="text" placeholder="admin" />
+        </div>
+        <div class="field">
+          <label for="adminPassword">Password</label>
+          <input id="adminPassword" type="password" placeholder="Admin password" />
+        </div>
+
+        <button class="btn modalSubmit" type="button" onclick="loginAdmin()">Login</button>
+        <p class="orderMessage" id="adminLoginMessage" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="overlay cartOverlay" id="cartOverlay" onclick="closeCartOnOverlay(event)">
+      <aside class="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+        <div class="cartHeader">
+          <h2 id="cartTitle">Shopping Cart</h2>
+          <button class="closeBtn" type="button" onclick="closeCart()" aria-label="Close">&times;</button>
+        </div>
+        <div class="cartItems" id="cartItems"></div>
+        <div class="cartActions">
+          <button class="btn clearCartBtn" type="button" onclick="clearCart()">Clear Cart</button>
+          <button class="btn orderBtn" type="button" onclick="openCheckout()">Order Now</button>
+          <button class="btn" type="button" onclick="closeCart()">Continue Shopping</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="overlay" id="checkoutOverlay" onclick="closeCheckoutOnOverlay(event)">
+      <form class="checkoutModal" id="checkoutForm" onsubmit="submitOrder(event)">
+        <button class="closeBtn" type="button" onclick="closeCheckout()" aria-label="Close">&times;</button>
+        <h2>Complete Order</h2>
+        <p class="modalSub">Choose Instapay payment and upload the transfer screenshot.</p>
+
+        <div class="field">
+          <label for="customerName">Full Name</label>
+          <input id="customerName" type="text" placeholder="Your name" required />
+        </div>
+        <div class="field">
+          <label for="customerPhone">Phone Number</label>
+          <input id="customerPhone" type="tel" placeholder="01xxxxxxxxx" inputmode="numeric" pattern="01[0-9]{9}" maxlength="11" minlength="11" required />
+        </div>
+        <div class="field">
+          <label for="customerAddress">Delivery Address</label>
+          <input id="customerAddress" type="text" placeholder="City, street, house number" required />
+        </div>
+
+        <div class="orderSummary" id="orderSummary"></div>
+
+        <p class="paymentTitle">Payment Method</p>
+        <div class="paymentOptions">
+          <label class="paymentOption">
+            <input type="radio" name="paymentMethod" value="cash" checked onchange="togglePaymentFields()" />
+            Cash + Instapay Deposit
+          </label>
+          <label class="paymentOption">
+            <input type="radio" name="paymentMethod" value="instapay" onchange="togglePaymentFields()" />
+            Full Instapay
+          </label>
+        </div>
+
+        <div class="depositBox active" id="depositBox">
+          <p class="depositNote">For cash orders, pay the deposit by Instapay now and the rest on delivery.</p>
+        </div>
+
+        <div class="instapayFields active" id="instapayFields">
+          <div class="instapayCard">
+            <p class="instapayTitle">Instapay Number</p>
+            <p class="instapayNumber" id="instapayNumber">01116943087</p>
+            <p class="instapayHint">Upload the Instapay transfer screenshot.</p>
+            <input id="instapayScreenshot" type="file" accept="image/*" required />
+          </div>
+        </div>
+
+        <button class="btn modalSubmit" type="submit">Send Order on WhatsApp</button>
+        <p class="orderMessage" id="orderMessage" aria-live="polite"></p>
+      </form>
+    </div>
+    <div class="overlay adminOverlay" id="adminOverlay" onclick="closeAdminOnOverlay(event)">
+      <section class="adminPanel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+        <div class="cartHeader">
+          <h2 id="adminTitle">Admin Products</h2>
+          <button class="closeBtn" type="button" onclick="closeAdminPanel()" aria-label="Close">&times;</button>
+        </div>
+        <div class="adminGrid">
+          <div class="field">
+            <label for="adminProductName">Product Name</label>
+            <input id="adminProductName" type="text" placeholder="boxfit new" />
+          </div>
+          <div class="field">
+            <label for="adminProductType">Type</label>
+            <input id="adminProductType" type="text" value="T-shirt" />
+          </div>
+          <div class="field">
+            <label for="adminProductPrice">Price</label>
+            <input id="adminProductPrice" type="number" value="630" />
+          </div>
+          <div class="field">
+            <label for="adminProductImg">Image file or URL</label>
+            <input id="adminProductImg" type="text" placeholder="new-shirt.jpg" />
+          </div>
+        </div>
+        <button class="btn modalSubmit" type="button" onclick="saveAdminProduct()">Save Product</button>
+        <div class="adminProducts" id="adminProducts"></div>
+      </section>
+    </div>
+
+    <script>
+      const PRODUCT_PRICE = 630;
+      const DELIVERY_FEE = 75;
+      const DEPOSIT_AMOUNT = 200;
+      const INSTAPAY_NUMBER = '01116943087';
+      const WHATSAPP_NUMBER = '201116943087';
+      const ADMIN_USERNAME = 'admin';
+      const ADMIN_PASSWORD = 'karas12345';
+
+      // Bundle offer: buy 2 for 1200 EGP, buy 3 for 1650 EGP (applies to standard-priced items)
+      const BUNDLE_PRICES = { 2: 1200, 3: 1650 };
+
+      function calculateBundlePrice(quantity) {
+        const dp = [0];
+        for (let i = 1; i <= quantity; i++) {
+          let best = dp[i - 1] + PRODUCT_PRICE;
+          if (i >= 2) best = Math.min(best, dp[i - 2] + BUNDLE_PRICES[2]);
+          if (i >= 3) best = Math.min(best, dp[i - 3] + BUNDLE_PRICES[3]);
+          dp[i] = best;
+        }
+        return dp[quantity];
+      }
+
+      const defaultProducts = [
+        { name: 'boxfit white', type: 'T-shirt', img: 'white.jpg', price: PRODUCT_PRICE },
+        { name: 'boxfit black', type: 'T-shirt', img: 'black.jpg', price: PRODUCT_PRICE },
+        { name: 'boxfit camel', type: 'T-shirt', img: 'camel.jpg', price: PRODUCT_PRICE },
+      ];
+
+      function getProducts() {
+        return JSON.parse(localStorage.getItem('tomasProducts') || JSON.stringify(defaultProducts));
+      }
+
+      function saveProducts(products) {
+        localStorage.setItem('tomasProducts', JSON.stringify(products));
+      }
+
+      function formatMoney(value) {
+        return `${value} EGP`;
+      }
+
+      function productUrl(product) {
+        const params = new URLSearchParams({
+          name: product.name,
+          type: product.type,
+          img: product.img,
+          price: product.price || PRODUCT_PRICE,
+        });
+        return `product.html?${params.toString()}`;
+      }
+
+      function getCart() {
+        return JSON.parse(localStorage.getItem('tomasCart') || '[]');
+      }
+
+      function saveCart(cart) {
+        localStorage.setItem('tomasCart', JSON.stringify(cart));
+        updateCartCount();
+      }
+
+      function getCartSubtotal() {
+        const cart = getCart();
+        let bundleQty = 0;
+        let total = 0;
+        cart.forEach((item) => {
+          const price = item.price || PRODUCT_PRICE;
+          if (price === PRODUCT_PRICE) {
+            bundleQty += item.quantity;
+          } else {
+            total += price * item.quantity;
+          }
+        });
+        return total + calculateBundlePrice(bundleQty);
+      }
+
+      function getCartSavings() {
+        const cart = getCart();
+        const bundleQty = cart.reduce((total, item) => {
+          const price = item.price || PRODUCT_PRICE;
+          return price === PRODUCT_PRICE ? total + item.quantity : total;
+        }, 0);
+        return (bundleQty * PRODUCT_PRICE) - calculateBundlePrice(bundleQty);
+      }
+
+      function getCartTotal() {
+        return getCartSubtotal() + DELIVERY_FEE;
+      }
+
+      function updateCartCount() {
+        const count = getCart().reduce((total, item) => total + item.quantity, 0);
+        document.getElementById('cartCount').textContent = count;
+      }
+
+      function renderCart() {
+        const cart = getCart();
+        const cartItems = document.getElementById('cartItems');
+
+        if (cart.length === 0) {
+          cartItems.innerHTML = '<p class="emptyCart">Your cart is empty.</p>';
+          return;
+        }
+
+        cartItems.innerHTML = cart.map((item, index) => `
+          <div class="cartItem">
+            <img src="${item.img}" alt="${item.name}" />
+            <div class="cartItemInfo">
+              <h3>${item.name}</h3>
+              <p>${item.type} - Size ${item.size}</p>
+              <span>${formatMoney(item.price || PRODUCT_PRICE)} x ${item.quantity}</span>
+            </div>
+            <button class="removeCartBtn" type="button" onclick="removeCartItem(${index})">Remove</button>
+          </div>
+        `).join('') + `
+          <div class="cartTotals">
+            ${getCartSavings() > 0 ? `<div><span>Bundle savings</span><strong>-${formatMoney(getCartSavings())}</strong></div>` : ''}
+            <div><span>Subtotal</span><strong>${formatMoney(getCartSubtotal())}</strong></div>
+            <div><span>Delivery</span><strong>${formatMoney(DELIVERY_FEE)}</strong></div>
+            <div><span>Total</span><strong>${formatMoney(getCartTotal())}</strong></div>
+          </div>
+        `;
+      }
+
+      function openCart() {
+        renderCart();
+        document.getElementById('cartOverlay').classList.add('active');
+      }
+
+      function closeCart() {
+        document.getElementById('cartOverlay').classList.remove('active');
+      }
+
+      function closeCartOnOverlay(event) {
+        if (event.target === document.getElementById('cartOverlay')) closeCart();
+      }
+
+      function removeCartItem(index) {
+        const cart = getCart();
+        cart.splice(index, 1);
+        saveCart(cart);
+        renderCart();
+      }
+
+      function clearCart() {
+        saveCart([]);
+        renderCart();
+      }
+
+      function openModal() {
+        document.getElementById('overlay').classList.add('active');
+      }
+
+      function closeModal() {
+        document.getElementById('overlay').classList.remove('active');
+      }
+
+      function closeOnOverlay(event) {
+        if (event.target === document.getElementById('overlay')) closeModal();
+      }
+
+      function openCheckout() {
+        if (getCart().length === 0) {
+          document.getElementById('cartItems').innerHTML = '<p class="emptyCart">Add products before ordering.</p>';
+          return;
+        }
+
+        closeCart();
+        renderOrderSummary();
+        togglePaymentFields();
+        document.getElementById('checkoutOverlay').classList.add('active');
+      }
+
+      function closeCheckout() {
+        document.getElementById('checkoutOverlay').classList.remove('active');
+      }
+
+      function closeCheckoutOnOverlay(event) {
+        if (event.target === document.getElementById('checkoutOverlay')) closeCheckout();
+      }
+
+      function renderOrderSummary() {
+        document.getElementById('instapayNumber').textContent = INSTAPAY_NUMBER;
+        document.getElementById('orderSummary').innerHTML = `
+          ${getCartSavings() > 0 ? `<div class="priceLine"><span>Bundle savings</span><strong>-${formatMoney(getCartSavings())}</strong></div>` : ''}
+          <div class="priceLine"><span>Items</span><strong>${formatMoney(getCartSubtotal())}</strong></div>
+          <div class="priceLine"><span>Delivery</span><strong>${formatMoney(DELIVERY_FEE)}</strong></div>
+          <div class="priceLine total"><span>Total</span><strong>${formatMoney(getCartTotal())}</strong></div>
+          <div class="priceLine"><span>Cash deposit</span><strong>${formatMoney(DEPOSIT_AMOUNT)}</strong></div>
+        `;
+      }
+
+      function togglePaymentFields() {
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const depositBox = document.getElementById('depositBox');
+        const screenshot = document.getElementById('instapayScreenshot');
+        depositBox.classList.toggle('active', paymentMethod === 'cash');
+        screenshot.required = true;
+      }
+
+      function buildOrderMessage(paymentMethod) {
+        const cart = getCart();
+        const name = document.getElementById('customerName').value.trim();
+        const phone = document.getElementById('customerPhone').value.trim();
+        const address = document.getElementById('customerAddress').value.trim();
+        const items = cart.map((item) => `- ${item.name} / Size ${item.size} / Qty ${item.quantity} / ${formatMoney(item.price || PRODUCT_PRICE)}`).join('%0A');
+        const paymentText = paymentMethod === 'cash'
+          ? `Cash on delivery + Instapay deposit ${formatMoney(DEPOSIT_AMOUNT)}`
+          : 'Full Instapay payment';
+
+        const savingsLine = getCartSavings() > 0 ? `%0ABundle savings: -${formatMoney(getCartSavings())}` : '';
+        return `New Tomas Fashion Order%0A%0AName: ${name}%0APhone: ${phone}%0AAddress: ${address}%0A%0AItems:%0A${items}%0A%0ASubtotal: ${formatMoney(getCartSubtotal())}${savingsLine}%0ADelivery: ${formatMoney(DELIVERY_FEE)}%0ATotal: ${formatMoney(getCartTotal())}%0APayment: ${paymentText}%0AInstapay: ${INSTAPAY_NUMBER}%0A%0ANote: Customer should send the Instapay screenshot in WhatsApp.`;
+      }
+
+      function submitOrder(event) {
+        event.preventDefault();
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const orderMessage = document.getElementById('orderMessage');
+        const phoneInput = document.getElementById('customerPhone');
+        const phoneDigits = phoneInput.value.trim();
+
+        if (!/^01[0-9]{9}$/.test(phoneDigits)) {
+          orderMessage.textContent = 'Please enter a valid 11-digit phone number (e.g. 01xxxxxxxxx).';
+          phoneInput.focus();
+          return;
+        }
+
+        const message = buildOrderMessage(paymentMethod);
+
+        if (WHATSAPP_NUMBER.includes('PUT_')) {
+          orderMessage.textContent = 'Add your WhatsApp number in the code first.';
+          return;
+        }
+
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+        orderMessage.textContent = 'Order opened in WhatsApp. Please attach the Instapay screenshot there.';
+        saveCart([]);
+        renderCart();
+        document.getElementById('checkoutForm').reset();
+        renderOrderSummary();
+        togglePaymentFields();
+      }
+
+      function loginAdmin() {
+        const username = document.getElementById('adminUser').value.trim().toLowerCase();
+        const password = document.getElementById('adminPassword').value;
+        const message = document.getElementById('adminLoginMessage');
+
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          closeModal();
+          openAdminPanel();
+          return;
+        }
+
+        message.textContent = 'Wrong admin username or password.';
+      }
+
+      function openAdminPanel() {
+        renderAdminProducts();
+        document.getElementById('adminOverlay').classList.add('active');
+      }
+
+      function closeAdminPanel() {
+        document.getElementById('adminOverlay').classList.remove('active');
+      }
+
+      function closeAdminOnOverlay(event) {
+        if (event.target === document.getElementById('adminOverlay')) closeAdminPanel();
+      }
+
+      function saveAdminProduct() {
+        const name = document.getElementById('adminProductName').value.trim();
+        const type = document.getElementById('adminProductType').value.trim() || 'T-shirt';
+        const price = Number(document.getElementById('adminProductPrice').value) || PRODUCT_PRICE;
+        const img = document.getElementById('adminProductImg').value.trim();
+
+        if (!name || !img) return;
+
+        const products = getProducts();
+        const existing = products.find((product) => product.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          existing.type = type;
+          existing.price = price;
+          existing.img = img;
+        } else {
+          products.push({ name, type, price, img });
+        }
+
+        saveProducts(products);
+        renderAdminProducts();
+        if (typeof renderProducts === 'function') renderProducts();
+      }
+
+      function deleteAdminProduct(index) {
+        const products = getProducts();
+        products.splice(index, 1);
+        saveProducts(products);
+        renderAdminProducts();
+        if (typeof renderProducts === 'function') renderProducts();
+      }
+
+      function editAdminProduct(index) {
+        const product = getProducts()[index];
+        document.getElementById('adminProductName').value = product.name;
+        document.getElementById('adminProductType').value = product.type;
+        document.getElementById('adminProductPrice').value = product.price || PRODUCT_PRICE;
+        document.getElementById('adminProductImg').value = product.img;
+      }
+
+      function renderAdminProducts() {
+        const adminProducts = document.getElementById('adminProducts');
+        adminProducts.innerHTML = getProducts().map((product, index) => `
+          <div class="adminProduct">
+            <span>${product.name} - ${formatMoney(product.price || PRODUCT_PRICE)}</span>
+            <div>
+              <button type="button" onclick="editAdminProduct(${index})">Edit</button>
+              <button type="button" onclick="deleteAdminProduct(${index})">Delete</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const productName = params.get('name') || 'boxfit white';
+      const productType = params.get('type') || 'T-shirt';
+      const productImg = params.get('img') || 'white.jpg';
+      const productPrice = Number(params.get('price')) || PRODUCT_PRICE;
+
+      document.title = `${productName} | Tomas Fashion`;
+      document.getElementById('productName').textContent = productName;
+      document.getElementById('productCategory').textContent = productType;
+      document.getElementById('productImg').src = productImg;
+      document.getElementById('productImg').alt = productName;
+
+      const priceElement = document.createElement('p');
+      priceElement.className = 'productDetailPrice';
+      priceElement.textContent = formatMoney(productPrice);
+      document.querySelector('.productDescription').before(priceElement);
+
+      function selectSize(button) {
+        document.querySelectorAll('.sizeBtn').forEach((item) => item.classList.remove('selected'));
+        button.classList.add('selected');
+        document.getElementById('cartMessage').textContent = '';
+      }
+
+      function addToCart() {
+        const selectedSize = document.querySelector('.sizeBtn.selected');
+        const message = document.getElementById('cartMessage');
+
+        if (!selectedSize) {
+          message.textContent = 'Please select a size first.';
+          return;
+        }
+
+        const size = selectedSize.textContent;
+        const cart = getCart();
+        const existingItem = cart.find((item) => item.name === productName && item.size === size);
+
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          cart.push({ name: productName, type: productType, img: productImg, price: productPrice, size, quantity: 1 });
+        }
+
+        saveCart(cart);
+        message.textContent = `${productName} - size ${size} added to cart.`;
+      }
+
+      updateCartCount();
+
+      document.getElementById('customerPhone').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          closeModal();
+          closeCart();
+          closeCheckout();
+          closeAdminPanel();
+        }
+      });
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
