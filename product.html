@@ -178,6 +178,8 @@
       const DELIVERY_FEE = 75;
       const DEPOSIT_AMOUNT = 200;
       const INSTAPAY_NUMBER = '01116943087';
+      const CLOUDINARY_CLOUD_NAME = 'bkkswpgy';
+      const CLOUDINARY_UPLOAD_PRESET = 'tomas_order';
       const WHATSAPP_NUMBER = '201116943087';
       const ADMIN_USERNAME = 'admin';
       const ADMIN_PASSWORD = 'karas12345';
@@ -371,21 +373,24 @@
         screenshot.required = true;
       }
 
-      function buildOrderMessage(paymentMethod) {
+      function buildOrderMessage(paymentMethod, screenshotUrl) {
         const cart = getCart();
         const name = document.getElementById('customerName').value.trim();
         const phone = document.getElementById('customerPhone').value.trim();
         const address = document.getElementById('customerAddress').value.trim();
-        const items = cart.map((item) => `- ${item.name} / Size ${item.size} / Qty ${item.quantity} / ${formatMoney(item.price || PRODUCT_PRICE)}`).join('%0A');
+        const items = cart.map((item) => `- ${item.name} / Size ${item.size} / Qty ${item.quantity} / ${formatMoney(item.price || PRODUCT_PRICE)}`).join('\n');
         const paymentText = paymentMethod === 'cash'
           ? `Cash on delivery + Instapay deposit ${formatMoney(DEPOSIT_AMOUNT)}`
           : 'Full Instapay payment';
 
-        const savingsLine = getCartSavings() > 0 ? `%0ABundle savings: -${formatMoney(getCartSavings())}` : '';
-        return `New Tomas Fashion Order%0A%0AName: ${name}%0APhone: ${phone}%0AAddress: ${address}%0A%0AItems:%0A${items}%0A%0ASubtotal: ${formatMoney(getCartSubtotal())}${savingsLine}%0ADelivery: ${formatMoney(DELIVERY_FEE)}%0ATotal: ${formatMoney(getCartTotal())}%0APayment: ${paymentText}%0AInstapay: ${INSTAPAY_NUMBER}%0A%0ANote: Customer should send the Instapay screenshot in WhatsApp.`;
+        const savingsLine = getCartSavings() > 0 ? `\nBundle savings: -${formatMoney(getCartSavings())}` : '';
+        const screenshotLine = screenshotUrl
+          ? `\nInstapay screenshot: ${screenshotUrl}`
+          : '\nNote: Please attach the Instapay screenshot in this chat.';
+        return `New Tomas Fashion Order\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${items}\n\nSubtotal: ${formatMoney(getCartSubtotal())}${savingsLine}\nDelivery: ${formatMoney(DELIVERY_FEE)}\nTotal: ${formatMoney(getCartTotal())}\nPayment: ${paymentText}\nInstapay: ${INSTAPAY_NUMBER}${screenshotLine}`;
       }
 
-      function submitOrder(event) {
+      async function submitOrder(event) {
         event.preventDefault();
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
         const orderMessage = document.getElementById('orderMessage');
@@ -398,15 +403,51 @@
           return;
         }
 
-        const message = buildOrderMessage(paymentMethod);
-
         if (WHATSAPP_NUMBER.includes('PUT_')) {
           orderMessage.textContent = 'Add your WhatsApp number in the code first.';
           return;
         }
 
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-        orderMessage.textContent = 'Order opened in WhatsApp. Please attach the Instapay screenshot there.';
+        // Reserve the WhatsApp tab now, inside the click handler, so the browser
+        // doesn't block it as a popup once we await the screenshot upload below.
+        const waWindow = window.open('', '_blank');
+
+        const screenshotInput = document.getElementById('instapayScreenshot');
+        const screenshotFile = screenshotInput.files && screenshotInput.files[0];
+        let screenshotUrl = '';
+
+        if (screenshotFile) {
+          orderMessage.textContent = 'Uploading screenshot...';
+          try {
+            const formData = new FormData();
+            formData.append('file', screenshotFile);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await response.json();
+            if (data && data.secure_url) {
+              screenshotUrl = data.secure_url;
+            }
+          } catch (err) {
+            screenshotUrl = '';
+          }
+        }
+
+        const message = buildOrderMessage(paymentMethod, screenshotUrl);
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+        if (waWindow) {
+          waWindow.location.href = waUrl;
+        } else {
+          window.open(waUrl, '_blank');
+        }
+
+        orderMessage.textContent = screenshotUrl
+          ? 'Order opened in WhatsApp with a link to your Instapay screenshot.'
+          : 'Order opened in WhatsApp. Please attach the Instapay screenshot there.';
+
         saveCart([]);
         renderCart();
         document.getElementById('checkoutForm').reset();
